@@ -3,3 +3,9 @@
 [2025-11-08 03:24:59] Backup script executed successfully
 [2025-11-08 03:25:21] Log Monitoring script executed successfully
 [2025-11-08 03:25:30] Exited Maintenance Suite
+2025-11-08 19:05:52 INFO: Welcome to Maintenance Suite!
+2025-11-08 19:06:07 INFO: Starting backup from /c/Users/Lenovo/bash_project/source_files to /c/Users/Lenovo/bash_project/backup/2025-11-08_190607
+2025-11-08 19:06:08 INFO:  Backup completed successfully at /c/Users/Lenovo/bash_project/backup/2025-11-08_190607
+2025-11-08 19:06:08 INFO: Script ended with exit code 0
+2025-11-08 19:06:08 INFO:  Maintenance Suite completed successfully
+2025-11-08 19:06:08 INFO: Script ended with exit code 0
