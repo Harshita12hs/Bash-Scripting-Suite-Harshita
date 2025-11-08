@@ -1,50 +1,34 @@
-#!/bin/bash
-# =========================================
-# Bash Script: log_monitor.sh
-# Purpose: Monitor log files for errors or warnings
-# Author: Harshita Swain
-# =========================================
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 
-echo "=================================="
-echo "🧩 Starting Log Monitoring Script"
-echo "=================================="
+LOGFILE="$(dirname "$0")/suite_log.txt"
 
-# Step 1: Define the log file to monitor
-LOG_FILE="$HOME/bash_project/system.log"
-ALERT_FILE="$HOME/bash_project/alerts.txt"
+log()  { printf '%s %s\n' "$(date +'%Y-%m-%d %H:%M:%S')" "$*" >> "$LOGFILE"; }
+info() { log "INFO: $*"; }
+err()  { log "ERROR: $*"; }
 
-# Step 2: Check if the log file exists, if not create it
-if [ ! -f "$LOG_FILE" ]; then
-    echo "No log file found. Creating a new system.log file..."
-    touch "$LOG_FILE"
-    echo "INFO: Log file created successfully on $(date)" >> "$LOG_FILE"
+error_exit() {
+  err "$* (exit code $?) on line ${BASH_LINENO[0]}"
+  echo " Fatal error: $* (see $LOGFILE)" >&2
+  exit 1
+}
+
+trap 'error_exit "Unexpected error at or before line $LINENO while running: $BASH_COMMAND"' ERR
+trap 'info "Script ended with exit code $?"' EXIT
+
+LOGFILE_TO_MONITOR="$HOME/bash_project/system.log"
+info "Monitoring log file: $LOGFILE_TO_MONITOR"
+
+if [ ! -f "$LOGFILE_TO_MONITOR" ]; then
+  error_exit "Log file not found: $LOGFILE_TO_MONITOR"
 fi
 
-# Step 3: Simulate adding logs (for demo)
-echo "Adding some dummy log entries..."
-echo "INFO: System running smoothly." >> "$LOG_FILE"
-echo "ERROR: Disk usage exceeded threshold!" >> "$LOG_FILE"
-echo "WARNING: Low memory detected." >> "$LOG_FILE"
-echo "INFO: Cleanup completed." >> "$LOG_FILE"
-
-# Step 4: Scan the log for 'ERROR' or 'WARNING'
-echo "🔍 Scanning logs for errors or warnings..."
-grep -i "error\|warning" "$LOG_FILE" > "$ALERT_FILE"
-
-# Step 5: Check if alerts were found
-if [ -s "$ALERT_FILE" ]; then
-    echo "⚠️  Alerts Found!"
-    echo "----------------------------------"
-    cat "$ALERT_FILE"
-    echo "----------------------------------"
-    echo "⚠️  Alerts logged to $ALERT_FILE"
+if grep -Ei 'error|fail|fatal' "$LOGFILE_TO_MONITOR" | tee -a "$LOGFILE"; then
+  info "Errors found and logged"
 else
-    echo "✅ No alerts found in system logs."
+  info "No errors found in log"
 fi
 
-# Step 6: Log the monitoring activity
-echo "🕒 Log monitoring performed on $(date)" >> "$HOME/bash_project/monitor_log.txt"
+info " Log monitoring completed"
 
-echo "=================================="
-echo "Log monitoring completed!"
-echo "=================================="

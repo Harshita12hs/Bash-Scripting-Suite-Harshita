@@ -1,41 +1,35 @@
-#!/bin/bash
-# =========================================
-# Bash Script: update_cleanup.sh
-# Purpose: Simulate system updates and cleanup
-# Author: Harshita Swain
-# =========================================
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 
-echo "=================================="
-echo "🧩 Starting System Update & Cleanup Script"
-echo "=================================="
+LOGFILE="$(dirname "$0")/suite_log.txt"
 
-# Step 1: Simulate a system update
-echo "🔄 Checking for system updates..."
-sleep 2
-echo "✅ All packages are up to date!"
+log()  { printf '%s %s\n' "$(date +'%Y-%m-%d %H:%M:%S')" "$*" >> "$LOGFILE"; }
+info() { log "INFO: $*"; }
+err()  { log "ERROR: $*"; }
 
-# Step 2: Clean temporary files (simulate cleanup)
+error_exit() {
+  err "$* (exit code $?) on line ${BASH_LINENO[0]}"
+  echo " Fatal error: $* (see $LOGFILE)" >&2
+  exit 1
+}
+
+trap 'error_exit "Unexpected error at or before line $LINENO while running: $BASH_COMMAND"' ERR
+trap 'info "Script ended with exit code $?"' EXIT
+
+info "Starting system update and cleanup process..."
+
 TEMP_DIR="$HOME/bash_project/temp_files"
-mkdir -p "$TEMP_DIR"
 
-echo "🧹 Cleaning temporary files..."
-rm -rf "$TEMP_DIR"/* 2>/dev/null
-sleep 1
+if [ -d "$TEMP_DIR" ]; then
+  info "Cleaning up temporary files..."
+  rm -rf "$TEMP_DIR" || error_exit "Failed to clean up $TEMP_DIR"
+else
+  info "No temporary files found in $TEMP_DIR"
+fi
 
-# Step 3: Create dummy temp files to show cleanup works
-echo "Creating some dummy temp files for demonstration..."
-touch "$TEMP_DIR/temp1.log" "$TEMP_DIR/temp2.tmp" "$TEMP_DIR/temp3.cache"
-echo "Temporary files created:"
-ls "$TEMP_DIR"
+info "Simulating system update..."
+sleep 2 || error_exit "System update simulation failed"
 
-# Step 4: Simulate cleanup process
-echo "🧼 Performing cleanup..."
-rm -rf "$TEMP_DIR"/*
-sleep 1
+info " Update and cleanup completed successfully!"
 
-echo "✅ Cleanup completed successfully!"
-echo "🕒 Operation finished on $(date)" >> "$HOME/bash_project/cleanup_log.txt"
-
-echo "=================================="
-echo "System update and cleanup completed!"
-echo "=================================="

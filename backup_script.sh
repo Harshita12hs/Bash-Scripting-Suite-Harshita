@@ -1,14 +1,30 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+LOGFILE="$(dirname "$0")/suite_log.txt"
+
+log()  { printf '%s %s\n' "$(date +'%Y-%m-%d %H:%M:%S')" "$*" >> "$LOGFILE"; }
+info() { log "INFO: $*"; }
+err()  { log "ERROR: $*"; }
+
+error_exit() {
+  err "$* (exit code $?) on line ${BASH_LINENO[0]}"
+  echo " Fatal error: $* (see $LOGFILE)" >&2
+  exit 1
+}
+
+trap 'error_exit "Unexpected error at or before line $LINENO while running: $BASH_COMMAND"' ERR
+trap 'info "Script ended with exit code $?"' EXIT
+
 SOURCE_DIR="$HOME/bash_project/source_files"
-BACKUP_DIR="$HOME/bash_project/backup"
+BACKUP_DIR="$HOME/bash_project/backup/$(date +%F_%H%M%S)"
 
-mkdir -p "$SOURCE_DIR"
-mkdir -p "$BACKUP_DIR"
+info "Starting backup from $SOURCE_DIR to $BACKUP_DIR"
 
-cp -r "$SOURCE_DIR"/* "$BACKUP_DIR"/ 2>/dev/null
+mkdir -p "$SOURCE_DIR" || error_exit "Failed to create source directory"
+mkdir -p "$BACKUP_DIR" || error_exit "Failed to create backup directory"
 
-echo "Backup completed successfully on $(date)" >> "$BACKUP_DIR/backup_log.txt"
-echo "✅ Backup done! Files copied from $SOURCE_DIR to $BACKUP_DIR"
+cp -r "$SOURCE_DIR"/. "$BACKUP_DIR"/ || error_exit "Backup copy failed"
 
-echo "Here are the files currently in your backup folder:"
-ls "$BACKUP_DIR"
+info " Backup completed successfully at $BACKUP_DIR"
